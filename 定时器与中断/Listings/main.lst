@@ -1,0 +1,66 @@
+C51 COMPILER V9.54   MAIN                                                                  12/25/2025 21:42:54 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\keil5\k\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          
+   3          void Timer0_Init()
+   4          {
+   5   1        //AUXR &= 0x7F;     //定时器时钟12T模式
+   6   1        TMOD &= 0xF0;     //设置定时器模式
+   7   1        TMOD |= 0x01;     //设置定时器模式
+   8   1        TL0 = 0x66;       //设置定时初始值
+   9   1        TH0 = 0xFC;       //设置定时初始值
+  10   1        TF0 = 0;        //清除TF0标志
+  11   1        TR0 = 1;        //定时器0开始计时
+  12   1        //中断操作
+  13   1        ET0 = 1;
+  14   1        EA = 1;
+  15   1        PT0 = 0;
+  16   1      }
+  17          
+  18          
+  19          
+  20          void main()
+  21          {
+  22   1        Timer0_Init();
+  23   1        while(1)
+  24   1        {
+  25   2          
+  26   2        }
+  27   1      }
+  28          
+  29          unsigned int T = 0;
+  30          
+  31          void Timer0_Routine(void) interrupt 1
+  32          {
+  33   1        TL0 = 0x66;       //设置定时初始值
+  34   1        TH0 = 0xFC;       //设置定时初始值
+  35   1        T++;
+  36   1        if(T >= 1000)
+  37   1        {
+  38   2          T = 0;
+  39   2          P2_0 = ~P2_0;
+  40   2        }
+  41   1          
+  42   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     68    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

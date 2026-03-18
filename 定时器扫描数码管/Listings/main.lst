@@ -1,0 +1,104 @@
+C51 COMPILER V9.54   MAIN                                                                  02/02/2026 17:16:48 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\keil5\k\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          
+   3          unsigned char n_buf[9]={0,10,10,10,10,10,10,10,10};
+   4          unsigned char seg_code[] = {0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F,0x00};
+   5          
+   6          void Timer0_Init();
+   7          void nixie(unsigned char a,b);
+   8          void n_loop(void);
+   9          void nixie_setbuf(unsigned char a,b);
+  10          
+  11          void main()
+  12          {
+  13   1        Timer0_Init();
+  14   1        while(1)
+  15   1        {
+  16   2        
+  17   2        }
+  18   1        
+  19   1      }
+  20          
+  21          void nixie_setbuf(unsigned char a,b)
+  22          {
+  23   1        n_buf[a] = b;
+  24   1      }
+  25          
+  26          void nixie(unsigned char a,b)
+  27          {
+  28   1        
+  29   1        P0=0x00;
+  30   1        
+  31   1        a = 8-a;
+  32   1        P2_2 = a % 2;
+  33   1        a = a / 2;
+  34   1        P2_3 = a % 2;
+  35   1        a = a / 2;
+  36   1        P2_4 = a % 2;
+  37   1        a = a / 2;
+  38   1      
+  39   1        P0 = seg_code[b];
+  40   1      }
+  41          
+  42          void n_loop(void)
+  43          {
+  44   1        static unsigned char i;
+  45   1        nixie(i,n_buf[i]);
+  46   1        i++;
+  47   1        if(i>8)
+  48   1          i=1;
+  49   1      }
+  50          
+  51          void Timer0_Routine(void) interrupt 1
+  52          {
+  53   1        static unsigned int T;
+  54   1        TL0 = 0x18;       //设置定时初始值
+C51 COMPILER V9.54   MAIN                                                                  02/02/2026 17:16:48 PAGE 2   
+
+  55   1        TH0 = 0xFC;       //设置定时初始值
+  56   1        T++;
+  57   1        if(T>=2)
+  58   1        {
+  59   2          T = 0;
+  60   2          n_loop();
+  61   2        }
+  62   1      }
+  63          
+  64          void Timer0_Init()
+  65          {
+  66   1        //AUXR &= 0x7F;     //定时器时钟12T模式
+  67   1        TMOD &= 0xF0;     //设置定时器模式
+  68   1        TMOD |= 0x01;     //设置定时器模式
+  69   1        TL0 = 0x18;       //设置定时初始值
+  70   1        TH0 = 0xFC;       //设置定时初始值
+  71   1        TF0 = 0;        //清除TF0标志
+  72   1        TR0 = 1;        //定时器0开始计时
+  73   1        //中断操作
+  74   1        ET0 = 1;
+  75   1        EA = 1;
+  76   1        PT0 = 0;
+  77   1      }
+  78          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    162    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     23    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
