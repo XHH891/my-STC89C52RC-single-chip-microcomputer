@@ -1,0 +1,110 @@
+C51 COMPILER V9.54   MAIN                                                                  02/15/2026 11:02:12 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\MAIN.obj
+COMPILER INVOKED BY: D:\keil5\k\C51\BIN\C51.EXE MAIN.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\MAIN
+                    -.lst) TABS(2) OBJECT(.\Objects\MAIN.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include "LCD1602.H"
+   3          
+   4          sbit xpt2046_cs   = P3^5;
+   5          sbit xpt2046_dclk = P3^6;
+   6          sbit xpt2046_din  = P3^4;
+   7          sbit xpt2046_dout = P3^7;
+   8          
+   9          #define XPT2046_XP_8      0x9C    //0x8C
+  10          #define XPT2046_YP_8      0xDC
+  11          #define XPT2046_VBAT_8    0xAC
+  12          #define XPT2046_AUX_8     0xEC
+  13          
+  14          #define XPT2046_XP_12     0x94    //0x84
+  15          #define XPT2046_YP_12     0xD4
+  16          #define XPT2046_VBAT_12   0xA4
+  17          #define XPT2046_AUX_12    0xE4
+  18          
+  19          unsigned int xpt2046_readAD(unsigned char command);
+  20          void Delay(unsigned int a);
+  21          
+  22          void main()
+  23          {
+  24   1          unsigned char advalue;
+  25   1          LCD_Init();
+  26   1          LCD_ShowString(1,1,"hello");
+  27   1          while(1)
+  28   1          {
+  29   2                advalue = xpt2046_readAD(XPT2046_XP_12);
+  30   2                LCD_ShowNum(2,1,advalue,3);
+  31   2                advalue = xpt2046_readAD(XPT2046_YP_12);
+  32   2                LCD_ShowNum(2,5,advalue,3);
+  33   2                advalue = xpt2046_readAD(XPT2046_VBAT_12);
+  34   2                LCD_ShowNum(2,9,advalue,3);
+  35   2                Delay(5);
+  36   2          }
+  37   1      }
+  38          
+  39          unsigned int xpt2046_readAD(unsigned char command)
+  40          {
+  41   1          unsigned char i;
+  42   1          unsigned int advlue=0;
+  43   1        
+  44   1          xpt2046_cs = 0;
+  45   1          xpt2046_dclk = 0;
+  46   1          
+  47   1          for(i=0;i<8;i++)
+  48   1          {
+  49   2              xpt2046_din = command&(0x80>>i);
+  50   2              xpt2046_dclk = 1;
+  51   2              xpt2046_dclk = 0;
+  52   2          }
+  53   1          
+  54   1          for(i=0;i<16;i++)
+C51 COMPILER V9.54   MAIN                                                                  02/15/2026 11:02:12 PAGE 2   
+
+  55   1          {
+  56   2              xpt2046_dclk = 1;
+  57   2              xpt2046_dclk = 0;
+  58   2              if(xpt2046_dout){advlue|=(0x800>>i);}
+  59   2          }
+  60   1          xpt2046_cs = 1;
+  61   1          
+  62   1          if(command&0x08)
+  63   1            return advlue>>8;
+  64   1          else
+  65   1            return advlue>>4;
+  66   1          
+  67   1      }
+  68          
+  69          void Delay(unsigned int a)
+  70          {
+  71   1        unsigned char i,j;
+  72   1      
+  73   1        while(a)
+  74   1        {
+  75   2          i = 4;
+  76   2          j = 239;
+  77   2      
+  78   2            do
+  79   2            {
+  80   3              while(--j);
+  81   3            }while(--i);
+  82   2          a--;
+  83   2        }
+  84   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    219    ----
+   CONSTANT SIZE    =      6    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       3
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,176 @@
+C51 COMPILER V9.54   MAIN                                                                  02/06/2026 11:36:47 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\MAIN.obj
+COMPILER INVOKED BY: D:\keil5\k\C51\BIN\C51.EXE MAIN.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\MAIN
+                    -.lst) TABS(2) OBJECT(.\Objects\MAIN.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include "LCD1602.H"
+   3          
+   4          /************************* ROM 指令集 *************************/
+   5          #define DS18B20_CMD_SEARCH_ROM      0xF0   // 搜索ROM
+   6          #define DS18B20_CMD_READ_ROM        0x33   // 读ROM
+   7          #define DS18B20_CMD_MATCH_ROM       0x55   // 匹配ROM
+   8          #define DS18B20_CMD_SKIP_ROM        0xCC  // 跳过ROM
+   9          #define DS18B20_CMD_ALARM_SEARCH    0xEC   // 报警搜索
+  10          
+  11          /************************* 功能指令集 *************************/
+  12          #define DS18B20_CMD_CONVERT_T        0x44  // 温度转换
+  13          #define DS18B20_CMD_WRITE_SCRATCHPAD 0x4E  // 写暂存器
+  14          #define DS18B20_CMD_READ_SCRATCHPAD  0xBE  // 读暂存器
+  15          #define DS18B20_CMD_COPY_SCRATCHPAD  0x48  // 复制暂存器到EEPROM
+  16          #define DS18B20_CMD_RECALL_E2        0xB8  // 从EEPROM召回数据
+  17          #define DS18B20_CMD_READ_POWER_SUPPLY 0xB4 // 读供电模式
+  18          
+  19          sbit DQ = P3^7;
+  20          
+  21          /*-----------单总线相关函数---------*/
+  22          unsigned char onewire_init();
+  23          void one_sendbit(unsigned char Bit);//写1或者0  若写1,则经过10微秒后从0变1;若写0,则DQ = Bi
+             -t;为0,经过两段时延后写入
+  24          unsigned char one_receivebit();//读1或者0
+  25          void one_sendbyte(unsigned char Byte);//写整个字节
+  26          unsigned char one_receivebyte();//读整个字节
+  27          /*-----------单总线相关函数---------*/
+  28          
+  29          /*----------DS18B20相关函数----------*/
+  30          void ds18b20_convertT();
+  31          float ds18b20_readt();
+  32          /*----------DS18B20相关函数----------*/
+  33          
+  34          void main()
+  35          {
+  36   1        float T;
+  37   1        
+  38   1        LCD_Init();
+  39   1        LCD_ShowString(1,1,"hello");
+  40   1        
+  41   1        while(1)
+  42   1        {
+  43   2          ds18b20_convertT();
+  44   2          T = ds18b20_readt();
+  45   2          if(T<0)
+  46   2          {
+  47   3            LCD_ShowChar(2,1,'-');
+  48   3            T=-T;
+  49   3          }
+  50   2          else
+  51   2            LCD_ShowChar(2,1,'+');
+  52   2          
+  53   2          LCD_ShowNum(2,2,T,3);
+C51 COMPILER V9.54   MAIN                                                                  02/06/2026 11:36:47 PAGE 2   
+
+  54   2          LCD_ShowChar(2,5,'.');
+  55   2          LCD_ShowNum(2,6,(unsigned long)(T*10000)%10000,4);
+  56   2        }
+  57   1      }
+  58          
+  59          /*----------DS18B20相关函数----------*/
+  60          void ds18b20_convertT(void)//触发温度转换
+  61          {
+  62   1          onewire_init();
+  63   1          one_sendbyte(DS18B20_CMD_SKIP_ROM);
+  64   1          one_sendbyte(DS18B20_CMD_CONVERT_T);
+  65   1      }
+  66          
+  67          float ds18b20_readt(void)//读取温度
+  68          {
+  69   1          unsigned char tlsb,tmlb;
+  70   1          int temp;
+  71   1          float t;
+  72   1          onewire_init();//单总线初始化：建立通信的前提
+  73   1          one_sendbyte(DS18B20_CMD_SKIP_ROM);
+  74   1          one_sendbyte(DS18B20_CMD_READ_SCRATCHPAD);//告诉传感器 “要读温度数据了”
+  75   1          tlsb = one_receivebyte();// 先读低8位（暂存器第0字节）
+  76   1          tmlb = one_receivebyte();// 后读高8位（暂存器第1字节）
+  77   1          temp = (tmlb<<8)|tlsb;//把两个 8 位字节合成完整的温度数据
+  78   1          t = temp/16.0;//把原始数据转换成可读的浮点温度
+  79   1          return t;
+  80   1      }
+  81          
+  82          
+  83          /*----------DS18B20相关函数----------*/
+  84          
+  85          /*-----------单总线相关函数---------*/
+  86          unsigned char onewire_init(void)//初始化
+  87          {
+  88   1          unsigned char i,ackbit;
+  89   1          DQ = 1;
+  90   1          DQ = 0;
+  91   1          i = 227;while (--i);  //delay 500us
+  92   1          DQ = 1;
+  93   1          i = 29;while (--i); //delay 70us
+  94   1          ackbit = DQ;
+  95   1          i = 227;while (--i);  //delay 500us
+  96   1          return ackbit;
+  97   1      }
+  98          
+  99          void one_sendbit(unsigned char Bit)//写1或者0  若写1,则经过10微秒后从0变1;若写0,则DQ = Bit
+             -;为0,经过两段时延后写入
+ 100          {
+ 101   1          unsigned char i;
+ 102   1        
+ 103   1          DQ = 0;
+ 104   1          i = 4;while (--i);  //delay 10us
+ 105   1          DQ = Bit;
+ 106   1          i = 22;while (--i); //delay 50us
+ 107   1          DQ = 1;
+ 108   1      }
+ 109          
+ 110          unsigned char one_receivebit(void)//读1或者0
+ 111          {
+ 112   1          unsigned char i,Bit;
+ 113   1          
+ 114   1          DQ = 0;
+C51 COMPILER V9.54   MAIN                                                                  02/06/2026 11:36:47 PAGE 3   
+
+ 115   1          i = 2;while (--i);  //delay 5us
+ 116   1          DQ = 1;
+ 117   1          i = 2;while (--i);  //delay 5us
+ 118   1          Bit = DQ;
+ 119   1          i = 22;while (--i); //delay 50us
+ 120   1        
+ 121   1          return Bit;
+ 122   1      }
+ 123          
+ 124          void one_sendbyte(unsigned char Byte)//写整个字节
+ 125          {
+ 126   1          unsigned char i;
+ 127   1        
+ 128   1          for(i=0;i<8;i++)
+ 129   1          {
+ 130   2              one_sendbit(Byte&(0x01<<i));
+ 131   2          } 
+ 132   1      }
+ 133          
+ 134          unsigned char one_receivebyte(void)//读整个字节
+ 135          {
+ 136   1          unsigned char i,Byte=0x00;
+ 137   1          for(i=0;i<8;i++)
+ 138   1          {
+ 139   2              if(one_receivebit())
+ 140   2              {
+ 141   3                Byte |= (0x01<<i);
+ 142   3              }
+ 143   2          }
+ 144   1          return Byte;
+ 145   1      }
+ 146          /*-----------单总线相关函数---------*/
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    345    ----
+   CONSTANT SIZE    =      6    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       5
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

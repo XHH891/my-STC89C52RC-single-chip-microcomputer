@@ -1,0 +1,4 @@
+".\Objects\MAIN.obj",
+".\Objects\LCD1602.obj" 
+TO ".\Objects\at24c02_I2C" 
+PRINT(".\Listings\at24c02_I2C.m51") RAMSIZE(256) 

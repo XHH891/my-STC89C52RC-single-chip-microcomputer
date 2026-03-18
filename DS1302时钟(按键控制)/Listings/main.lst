@@ -1,0 +1,201 @@
+C51 COMPILER V9.54   MAIN                                                                  01/23/2026 10:53:02 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: D:\keil5\k\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <REGX52.H>
+   2          #include <INTRINS.H>
+   3          #include "LCD1602.h"
+   4          
+   5          sbit DS1302_SCLK = P3^6;
+   6          sbit DS1302_IO = P3^4;
+   7          sbit DS1302_CE = P3^5;
+   8                                 //年、月、 日、 时、 分、 秒   WP
+   9          unsigned char w_d[] = {0x8A,0x88,0x86,0x84,0x82,0x80,0x8E};   
+  10          
+  11          void Ds1302_init(void);
+  12          void DS1302_settime(unsigned char *Dtime);//对多个数据写入
+  13          void DS1302_readtime(unsigned char *Dtime);//对多个数据读出
+  14          unsigned char DS1302_readbyte(unsigned char command);//单个数据读出
+  15          void DS1302_writebyte(unsigned char command,Data);//单个数据写入
+  16          void Delay(unsigned int a);
+  17          
+  18          void main()
+  19          {                       //年  月 日 时 分 秒 
+  20   1        unsigned char Dtime[] = {26,1,21,23,00,59};//为了方便读写,用一个数组保存所有时间数据
+  21   1        unsigned char a;
+  22   1        Ds1302_init();
+  23   1        LCD_Init();
+  24   1        
+  25   1        while(1)
+  26   1        {/*
+  27   2          a = 0;
+  28   2          if(P3_0 ==0)//开始修改时间
+  29   2          {
+  30   2            Delay(5);
+  31   2            while(P3_0 ==0);
+  32   2            Delay(5);
+  33   2            while(1)
+  34   2            {
+  35   2              if(P3_0 ==0)
+  36   2              {
+  37   2                Delay(5);
+  38   2                while(P3_0 ==0);
+  39   2                Delay(5);
+  40   2                break;
+  41   2              }
+  42   2              if(P3_1 ==0)//切换修改内容
+  43   2              {
+  44   2              
+  45   2              }
+  46   2              if(P3_2 ==0)//加
+  47   2              {
+  48   2            
+  49   2              }
+  50   2              if(P3_3 ==0)//减
+  51   2              {
+  52   2            
+  53   2              }
+  54   2              
+C51 COMPILER V9.54   MAIN                                                                  01/23/2026 10:53:02 PAGE 2   
+
+  55   2            }
+  56   2            
+  57   2          }*/
+  58   2          
+  59   2          DS1302_readtime();
+*** WARNING C209 IN LINE 59 OF main.c: '_DS1302_readtime': too few actual parameters
+  60   2          LCD_ShowNum(1,1,Dtime[0],2);
+  61   2          LCD_ShowNum(1,4,Dtime[1],2);
+  62   2          LCD_ShowNum(1,7,Dtime[2],2);
+  63   2          LCD_ShowNum(1,10,Dtime[3],2);
+  64   2          LCD_ShowNum(1,13,Dtime[4],2);
+  65   2          LCD_ShowNum(2,1,Dtime[5],2);
+  66   2        }
+  67   1      }
+*** WARNING C280 IN LINE 21 OF main.c: 'a': unreferenced local variable
+  68          
+  69          
+  70          
+  71          
+  72          
+  73          
+  74          
+  75          
+  76          
+  77          
+  78          
+  79          
+  80          
+  81          void Ds1302_init(void)//初始化
+  82          {
+  83   1        DS1302_CE = 0;
+  84   1        DS1302_SCLK = 0;
+  85   1      }
+  86          void DS1302_settime(unsigned char *Dtime)
+  87          {
+  88   1        unsigned char i;
+  89   1        DS1302_writebyte(w_d[6],0x00);//取消写保护
+  90   1        
+  91   1        for(i=0;i<6;i++)
+  92   1          DS1302_writebyte(w_d[i],(Dtime[i]/10)*16+Dtime[i]%10);
+  93   1        
+  94   1        DS1302_writebyte(w_d[6],0x80);//打开写保护
+  95   1      }
+  96          void DS1302_readtime(unsigned char *Dtime)
+  97          {
+  98   1        unsigned char t,i;
+  99   1        
+ 100   1        for(i=0;i<6;i++)
+ 101   1        {
+ 102   2          t = DS1302_readbyte(w_d[i]);
+ 103   2          Dtime[i] = t/16*10 + t%16;
+ 104   2        }
+ 105   1      }
+ 106          
+ 107          
+ 108          void DS1302_writebyte(unsigned char command,Data)
+ 109          {
+ 110   1        unsigned char i;
+ 111   1        DS1302_CE = 1;
+ 112   1        
+ 113   1        for(i=0;i<8;i++)
+ 114   1        {
+C51 COMPILER V9.54   MAIN                                                                  01/23/2026 10:53:02 PAGE 3   
+
+ 115   2          DS1302_IO = command&(0x01<<i);//拿到command的第一位
+ 116   2          DS1302_SCLK = 1;//注意需不需要加延时,防止速度过快
+ 117   2          DS1302_SCLK = 0;//每次电量下降,写入一个数据
+ 118   2        }
+ 119   1        
+ 120   1        for(i=0;i<8;i++)
+ 121   1        {
+ 122   2          DS1302_IO = Data&(0x01<<i);//拿到command的第一位
+ 123   2          DS1302_SCLK = 1;//注意需不需要加延时,防止速度过快
+ 124   2          DS1302_SCLK = 0;
+ 125   2        } 
+ 126   1        DS1302_CE=0;
+ 127   1      }
+ 128          
+ 129          unsigned char DS1302_readbyte(unsigned char command)
+ 130          {
+ 131   1        unsigned char i,d=0x00;
+ 132   1        
+ 133   1        command |= 0x01;//由于读寄存器最后一位一定是1,所以直接将最后一位变为一
+ 134   1        DS1302_CE = 1;
+ 135   1        
+ 136   1        for(i=0;i<8;i++)
+ 137   1        {
+ 138   2          DS1302_IO = command&(0x01<<i);//拿到command的第一位
+ 139   2          DS1302_SCLK = 0;
+ 140   2          DS1302_SCLK = 1;
+ 141   2        }
+ 142   1        for(i=0;i<8;i++)
+ 143   1        {
+ 144   2          DS1302_SCLK = 1; 
+ 145   2          DS1302_SCLK = 0;
+ 146   2          if(DS1302_IO)
+ 147   2            d |= 0x01<<i;//如果端口状态为1那就置为1
+ 148   2        }
+ 149   1        DS1302_CE = 0;
+ 150   1        DS1302_IO=0;
+ 151   1        return d;
+ 152   1      }
+ 153          
+ 154          void Delay(unsigned int a)
+ 155          {
+ 156   1        unsigned char i,j;
+ 157   1      
+ 158   1        while(a)
+ 159   1        {
+ 160   2          _nop_();
+ 161   2          i = 4;
+ 162   2          j = 239;
+ 163   2          do
+ 164   2          {
+ 165   3            while(--j);
+ 166   3          }while(--i);
+ 167   2          a--;
+ 168   2        }
+ 169   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    454    ----
+   CONSTANT SIZE    =      6    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+C51 COMPILER V9.54   MAIN                                                                  01/23/2026 10:53:02 PAGE 4   
+
+   DATA SIZE        =      7      17
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)

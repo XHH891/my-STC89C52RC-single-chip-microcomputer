@@ -1,0 +1,13 @@
+C51 COMPILER V9.54   MM                                                                    01/22/2026 09:34:08 PAGE 1   
+
+
+C51 COMPILER V9.54, COMPILATION OF MODULE MM
+OBJECT MODULE PLACED IN .\Objects\mm.obj
+COMPILER INVOKED BY: D:\keil5\k\C51\BIN\C51.EXE mm.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\mm.lst
+                    -) TABS(2) OBJECT(.\Objects\mm.obj)
+
+line level    source
+
+*** ERROR C318 OF mm.c: can't open file 'mm.c'
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  1 ERROR(S)
